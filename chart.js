@@ -2,8 +2,6 @@ var _ = require("underscore");
 var Backbone = require("backbone");
 var VError = require("verror");
 const BrowserFS = require('browserfs');
-// var fs = require ("fs");
-
 BrowserFS.install(window)
 
 var XLSXChart = Backbone.Model.extend({
@@ -40,9 +38,23 @@ var XLSXChart = Backbone.Model.extend({
 			if (err) {
 				return cb(new VError(err, "writeFile"));
 			}
-			fs.writeFile(opts.file, result, "base64", function (err) {
-				cb(err ? new VError(err, "writeFile") : null);
-			});
+			const byteCharacters = atob(result);
+			const byteNumbers = new Array(byteCharacters.length);
+			for (let i = 0; i < byteCharacters.length; i++) {
+				byteNumbers[i] = byteCharacters.charCodeAt(i);
+			}
+			const byteArray = new Uint8Array(byteNumbers);
+			let fileURL = window.URL.createObjectURL(new Blob([byteArray]));
+			let fileLink = document.createElement('a');
+
+			fileLink.href = fileURL;
+			fileLink.setAttribute('download', opts.file);
+			document.body.appendChild(fileLink);
+
+			fileLink.click();
+			// fs.writeFile(opts.file, result, "base64", function (err) {
+			// 	cb(err ? new VError(err, "writeFile") : null);
+			// });
 		});
 	}
 });

@@ -23,22 +23,27 @@ BrowserFS.install(window)
 // );
 
 // Example GET method implementation:
-async function getData(url = '') {
+async function getData() {
 	// Default options are marked with *
-	const response = await fetch(url, {
-		method: 'GET', // *GET, POST, PUT, DELETE, etc.
-		mode: 'cors', // no-cors, *cors, same-origin
-		cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-		credentials: 'same-origin', // include, *same-origin, omit
-		// headers: {
-		// 	'Content-Type': 'application/json'
-		// }
-	});
-	console.log(response);
-	return response.json(); // parses JSON response into native JavaScript objects
+	await fetch('http://localhost:8080/column.xlsx', {
+		method: 'GET',
+		mode: 'cors',
+		cache: 'no-cache',
+		credentials: 'same-origin',
+		headers: {
+			'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+		},
+	})
+		.then(response => {
+			console.log(response);
+			return response.blob();
+		})
+		.then(data => {
+			console.log(data);
+		})
 }
 
-getData('https://cesconnect.file.core.windows.net/cdc-templates/column.xlsx');
+getData();
 
 const CHART_TAG_BY_CHART_NAME = {
 	bar: "c:barChart",
@@ -975,16 +980,24 @@ var Chart = Backbone.Model.extend({
 			function (cb) {
 				me.zip = new JSZip();
 				me.setTemplateName(opts);
-				// console.log(cb);
-				let path = me.templatePath ? me.templatePath : ("./template/" + me.tplName + ".xlsx");
-				// fs.readFile('column.xlsx', function (err, data) {
-				// 	if (err) {
-				// 		console.error(`Template ${path} not read: ${err}`);
-				// 		return cb(err);
-				// 	};
-				// 	me.zip.load(data);
-				// 	cb();
-				// });
+				fetch('http://localhost:8080/column.xlsx', {
+					method: 'GET',
+					mode: 'cors',
+					cache: 'no-cache',
+					credentials: 'same-origin',
+					headers: {
+						'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+					},
+				})
+					.then(response => {
+						console.log(response);
+						return response.arrayBuffer();
+					})
+					.then(data => {
+						console.log(data);
+						me.zip.load(data);
+						cb();
+					})
 			},
 			function (cb) {
 				// save template chart so it could be easily removed before adding charts according to config
